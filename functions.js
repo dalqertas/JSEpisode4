@@ -7,6 +7,7 @@
  ****************************************************************/
 function getBookById(bookId, books) {
   // Your code goes here
+  return books.find(book => book.id==bookId);
 }
 
 /**************************************************************
@@ -18,6 +19,7 @@ function getBookById(bookId, books) {
  ****************************************************************/
 function getAuthorByName(authorName, authors) {
   // Your code goes here
+  return authors.find( author => author.name.toUpperCase() == authorName.toUpperCase());
 }
 
 /**************************************************************
@@ -28,6 +30,11 @@ function getAuthorByName(authorName, authors) {
  ****************************************************************/
 function bookCountsByAuthor(authors) {
   // Your code goes here
+  let newArr= [];
+  authors.forEach(author => {
+    newArr.push( {author: author.name, bookCount : author.books.length});
+  })
+  return newArr;
 }
 
 /**************************************************************
@@ -41,7 +48,18 @@ function booksByColor(books) {
   const colors = {};
 
   // Your code goes here
-
+  books.forEach( book => {
+    let arr=[];
+    if (colors[book.color]==undefined){
+      arr.push(book.title);
+      colors[book.color]=arr;
+    }
+    else {
+      arr=colors[book.color];
+      arr.push(book.title);
+      colors[book.color]=arr;
+    }
+  });
   return colors;
 }
 
@@ -55,6 +73,19 @@ function booksByColor(books) {
  ****************************************************************/
 function titlesByAuthorName(authorName, authors, books) {
   // Your code goes here
+  let authorObj = authors.find(author => author.name.toUpperCase()==authorName.toUpperCase());
+  if (authorObj== undefined){
+    return [];
+  }
+  let booksArr=[];
+  books.forEach(book => {
+    book.authors.forEach( author => {
+      if (author.id==authorObj.id){
+        booksArr.push(book.title);
+      }
+    });
+  });
+  return booksArr;
 }
 
 /**************************************************************
@@ -66,6 +97,14 @@ function titlesByAuthorName(authorName, authors, books) {
  ****************************************************************/
 function mostProlificAuthor(authors) {
   // Your code goes here
+  let profAuthor=authors[0];
+  let max=0;
+  authors.forEach(author => {
+    if (profAuthor.books.length<=author.books.length){
+      profAuthor=author;
+    }
+  });
+  return profAuthor.name;
 }
 
 /**************************************************************
@@ -93,6 +132,15 @@ function mostProlificAuthor(authors) {
  ****************************************************************/
 function relatedBooks(bookId, authors, books) {
   // Your code goes here
+  let book =getBookById(bookId,books);
+  let bookAuthors=book.authors.map(author => author.name);
+  let titles=[];
+  bookAuthors.forEach(
+    author => getAuthorByName(author,authors).books.forEach( book =>
+      titles.push(getBookById(book,books).title)
+      )
+  );
+  return titles;
 }
 
 /**************************************************************
@@ -103,6 +151,24 @@ function relatedBooks(bookId, authors, books) {
  ****************************************************************/
 function friendliestAuthor(authors) {
   // Your code goes here
+ 
+  authors.forEach(author => {
+    author.coAuthoringCount = 0;
+    authors.forEach(secondAuthor => {
+      if (secondAuthor.name != author.name){
+        const sharedBooks = secondAuthor.books.filter(bookId => author.books.includes(bookId));
+        author.coAuthoringCount += sharedBooks.length;
+      }
+    });
+  });
+    let friendlyAuthor = authors[0];
+    authors.forEach(author => {
+      if (author.coAuthoringCount > friendlyAuthor.coAuthoringCount){
+    friendlyAuthor=author;
+  }
+    });
+
+  return friendlyAuthor.name;
 }
 
 module.exports = {
@@ -121,8 +187,8 @@ module.exports = {
  * want to manually test your code
  */
 
-// const authors = require("./authors.json");
-// const books = require("./books.json");
+ const authors = require("./authors.json");
+ const books = require("./books.json");
 
 // console.log(getBookById(12, books));
 // console.log(getAuthorByName("J.K. Rowling", authors));
